@@ -9,6 +9,8 @@
 #include <fstream>
 
 int main(int argc, char* argv[]) {
+//    char *keywords[] = {"start", "finish", "then", "if", "repeat", "var",
+//                        "int", "float", "do", "read", "print", "void", "return", "dummy", "program"};
     int max = 1200;
     char in[max];
     std::string source;
@@ -16,8 +18,13 @@ int main(int argc, char* argv[]) {
     //For testing
     int whitespace = 0;
     std::ifstream infile;
-    infile.open("tiny_01_1.txt");
-    std::ofstream ofile("tiny");
+    std::string file;
+    infile.open("\\lexical---parser\\tiny_01_1.txt");
+    std::ofstream ofile("CLionProjects\\lexical---parser\\tiny");
+    if(!infile){
+        std::cout << "Error opening file";
+        return 5;
+    }
    while( !infile.eof()){
 
        infile.getline(in,max,'\r');
@@ -28,7 +35,7 @@ int main(int argc, char* argv[]) {
                break;
        }
 
-       ofile << in;
+       file.append(in);
    }
     std::cout << whitespace;
     infile.close();

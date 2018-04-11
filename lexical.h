@@ -5,12 +5,27 @@
 #ifndef SUBC_LEXICAL_H
 #define SUBC_LEXICAL_H
 
+#include <fstream>
+#include <errno.h>
 #include <map>
 
 class lexical {
+    const int MAXCHAR = 1200;
+    char *in;
+    std::ofstream ofile;
+    std::ifstream infile;
+    std::map<int,std::string> tokens;
+    std::string fileRead;
+    std::string leagalVarname;
+    std::string legalChars;
+
 public:
-std::map tokens<int,std::string>;
     lexical();
+    ~lexical(){};
+    void openFile(std::string,std::string);
+    void readFile();
+    void writeFIle();
+    void parse(std::fstream,std::ofstream);
 };
 
 
