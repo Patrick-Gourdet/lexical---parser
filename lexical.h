@@ -5,6 +5,8 @@
 #ifndef SUBC_LEXICAL_H
 #define SUBC_LEXICAL_H
 
+
+#include <iostream>
 #include <fstream>
 #include <errno.h>
 #include <map>
@@ -22,7 +24,7 @@ class lexical {
 public:
     lexical();
     ~lexical(){};
-    void openFile(std::string,std::string);
+    bool openFile(std::string,std::string);
     void readFile();
     void writeFIle();
     void parse(std::fstream,std::ofstream);

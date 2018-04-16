@@ -21,10 +21,14 @@ lexical::lexical() {
 void lexical::parse(std::fstream, std::ofstream) {
 
 }
- void lexical::openFile(const std::string pathInputFile,const std::string pathOutputFile) {
+bool lexical::openFile(const std::string pathInputFile,const std::string pathOutputFile) {
     infile.open(pathInputFile);
     ofile.open(pathOutputFile);
-
+     if(!infile){
+         std::cout << "Error opening file";
+        return false;
+     }
+    return true;
 }
 void lexical::readFile() {
     in =  new char[MAXCHAR];
