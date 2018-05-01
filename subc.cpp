@@ -10,7 +10,6 @@
 #include <regex>
 #include "lexical.h"
 
-
 int main(int argc, char* argv[]) {
     lexical lex;
     std::string sourceIn = "C:\\Users\\pgourdet\\CLionProjects\\lexical---parser\\tiny_01_1.txt";
@@ -27,8 +26,9 @@ int main(int argc, char* argv[]) {
     catch(int exception){
         std::cout << "Error in file! ";
     }
-    lex.readFile();
-    lex.parsing();
+//    lex.readFile();
+    lex.lex();
+    lex.closeFile();
     return 0;
 }
 

@@ -8,9 +8,10 @@
 
 #include <iostream>
 #include <fstream>
-#include <errno.h>
+#include <cerrno>
 #include <map>
 #include <vector>
+#include <cstring>
 #include "analyze.h"
 class lexical : public Analyze {
     const int MAXCHAR = 1200;
@@ -21,25 +22,23 @@ class lexical : public Analyze {
     std::map<int,std::string>::iterator iter;
     std::vector<std::string> fileRead;
     std::string leagalVarname;
-    std::string legalChars;
+    std::string leagalChar;
     std::map<int,std::string> keywords;
 
 public:
     lexical();
     ~lexical() = default;
     bool openFile(std::string,std::string) override;
-    void closeFile(std::ifstream&,std::ofstream&) override;
-    void readFile();
+    void closeFile() override;
+    void scanner();
     void writeFIle();
-    void parsing() override;
+    Token analyze() override;
     void lex();
-    bool isKeyword(std::string);
-    bool isIdentifier(char);
-    bool isInteger(char);
-    bool isDigit(std::string);
-    bool isReal(std::string);
-    bool isChar(std::string);
-    bool isAlpha(char);
+    char* tokenStr(Token,char *);
+    TokenType tokenTypeOperator(char);
+    TokenType tokenKeyword(char *);
+    TokenType tokenDelimiter(char ch);
+
 };
 
 
