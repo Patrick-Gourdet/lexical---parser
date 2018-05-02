@@ -9,7 +9,7 @@
 
 int main(int argc, char* argv[]) {
     lexical lex;
-    std::string sourceIn = "C:\\Users\\pgourdet\\CLionProjects\\lexical---parser\\tiny_09";
+    std::string sourceIn = "C:\\Users\\pgourdet\\CLionProjects\\lexical---parser\\tiny_22";
     std::string sourceOut = "C:\\Users\\pgourdet\\CLionProjects\\lexical---parser\\tiny";
     //std::ifstream infile(argv[1]);
     //For testing
