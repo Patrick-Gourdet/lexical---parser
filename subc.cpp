@@ -1,8 +1,5 @@
 #include <iostream>
 #include <cstring>
-//#include <cstdlib>
-//#include <stdio.h>
-//#include <string>
 #include <functional>
 #include <map>
 #include <vector>
@@ -12,7 +9,7 @@
 
 int main(int argc, char* argv[]) {
     lexical lex;
-    std::string sourceIn = "C:\\Users\\pgourdet\\CLionProjects\\lexical---parser\\tiny_01_1.txt";
+    std::string sourceIn = "C:\\Users\\pgourdet\\CLionProjects\\lexical---parser\\tiny_09";
     std::string sourceOut = "C:\\Users\\pgourdet\\CLionProjects\\lexical---parser\\tiny";
     //std::ifstream infile(argv[1]);
     //For testing
@@ -28,6 +25,7 @@ int main(int argc, char* argv[]) {
     }
 //    lex.readFile();
     lex.lex();
+
     lex.closeFile();
     return 0;
 }

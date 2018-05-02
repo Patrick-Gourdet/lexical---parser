@@ -1,8 +1,33 @@
 //
 // Created by pgourdet on 4/6/2018.
 //
-
 #include "lexical.h"
+
+
+int lineNum = 1;
+
+
+const char *keywords[36] = {"program","var","const","type","function"
+        ,"return","begin","end","output","if"
+        ,"then","else","while","do","case","of",".."
+        ,"otherwise","repeat","for","until","loop","pool"
+        ,"exit","and","or","not","read","succ","pred","chr"
+        ,"ord","eof","integer","string","mod"};
+
+const char *relationalOperators[] = {"==", "<", ">", "<>", "=>", "=<",":=:",":="};
+
+// char *otherOperators[] = {":", "+", "-", "*", "/", "%"};
+const char otherOperators[6] = {':', '+', '-', '*', '/'};
+
+// char *delimiters[9] = {".", "(", ")", ",", "{", "}", ";", "[", "]"};
+const char delimiters[9] = {'.', '(', ')', ',', '{', '}', ';', '[', ']'};
+
+char word[MAX];
+int wordIndex = 0; // index of word string
+
+char numStr[MAX];
+int numberIndex = 0;
+
 
 /*----------Check a char----------*/
 int isKeyword(char *str) {
@@ -54,12 +79,13 @@ lexical::lexical() {
 //    ,{42,"ord"},{43,"eof"},{44,"{"},{45,":"},{46,";"},{47,"."},{48,","},{49,"("}
 //    ,{50,")"},{51,"+"},{52,"-"},{53,"*"},{54,"/"},{54,"integer"},{55,"string"}};
 //    leagalVarname = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
-    leagalChar = "_@!%></?{}[]()+-*\"\':;=.";
+    leagalChar = "_@!%></?{}[]()+-*\"\':;=.,";
+
 //    int arr[] = {2,3,4,5,6,7,8,9,12,13,14,15,16,17,18,19,21,22,23,24,};
 //            .insert(std::pair<int,std::string>(1,"\r"));//set this to are needs to be changed \n later
 }
 void lexical::lex() {
-    std::ifstream &fptr = infile;
+    infile;
 
     char get;
     int numLine = 1;
@@ -69,22 +95,31 @@ void lexical::lex() {
     int i;
 
     int isValid = 1; // true
-    while (!(fptr.get(get)).eof()) {
+    while (!(infile.get(get)).eof()) {
         if (get == '\n')
             numLine++;
 
         // Exclude comment line starting with '//'
         if (get == '{') {
-            (fptr.get(get));
+            (infile.get(get));
             while (get != '}') {
-                (fptr.get(get));
+                (infile.get(get));
                 if(get  == '\n'){
                     numLine++;
                 }
 
             }
-            (fptr.get(get));
+            (infile.get(get));
         }
+        if (get == '#') {
+            (infile.get(get));
+            while (get != '\n') {
+                (infile.get(get));
+
+            }
+            lineNum++;(infile.get(get));
+        }
+
 
         // printf("%c", c);
 
@@ -105,30 +140,29 @@ void lexical::lex() {
         }
 
     }
-
+    infile.clear();
+    infile.seekg(0);
     if (isValid == 0) {
         printf("Something wrong with the input file. \n");
         exit(1);
     }
-}
-void lexical::scanner(){
     printf("%10s \t Line number \t %s\n\n", "Token instance", "Token type");
     numToken = 0; // extern var
     //Token *tokens = (Token *) malloc(numToken * sizeof(Token));
-    tokens = (Token *) malloc(numToken * sizeof(Token)); // extern var
+    tokens = (Token1 *) malloc(numToken * sizeof(Token1)); // extern var
     do {
         numToken++;
-        tokens = (Token *)realloc(tokens, numToken * sizeof(Token));
-        tokens[numToken - 1] = analyze();
+        tokens = (Token1 *)realloc(tokens, numToken * sizeof(Token1));
+        tokens[numToken - 1] = analyze(infile);
 
-        printToken(tokens[numToken - 1]);
+        tkPrint(tokens[numToken - 1]);
 
-    } while (tokens[numToken - 1].tokenType != EOFtk);
+    } while (tokens[numToken - 1].tokenType != T_EOF);
 }
-Token lexical::analyze() {
-    int lineNum = 1;
-    std::ifstream &fptr = infile;
-    Token token;
+
+Token1 lexical::analyze(std::ifstream &fptr) {
+
+    Token1 token;
     char get;
 
     while (!fptr.get(get).eof()) {
@@ -147,15 +181,24 @@ Token lexical::analyze() {
             }
             (fptr.get(get));
         }
-        // mod was giving me issues
-        if(get == 'm'){
-            int g = 6;
+        if (get == '#') {
+            (infile.get(get));
+            while (get != '\n') {
+                (infile.get(get));
+
+            }
+            lineNum++; (infile.get(get));
         }
-        if (isalpha(get) && get != 'm') {
+
+
+
+        if (isalpha(get) ) {
             word[wordIndex++] = get;
             (fptr.get(get));
             while (isalpha(get)) {
                 word[wordIndex++] = get;
+                (fptr.get(get));
+
             }
             word[wordIndex] = '\0';
             wordIndex = 0;
@@ -169,7 +212,7 @@ Token lexical::analyze() {
             token.lineNum = lineNum;
 
 
-              fptr.unget();
+//              fptr.unget();
 //            fseek(filePtr, -1, SEEK_CUR);
             //printToken(token);
             return token;
@@ -180,22 +223,24 @@ Token lexical::analyze() {
             (fptr.get(get));
             while (isdigit(get)) {
                 numStr[numberIndex++] = get;
+                (fptr.get(get));
+
             }
             numStr[numberIndex] = '\0';
             numberIndex = 0;
 
             strcpy(token.str, numStr);
-            token.tokenType = T_INTEGER;
+            token.tokenType = T_NUMBER;
             token.lineNum = lineNum;
 
-              fptr.unget();
+            fptr.unget();
 //            fseek(filePtr, -1, SEEK_CUR);
             //printToken(token);
             return token;
 
         }
 
-        else if (ispunct(get) || get == 'm') {
+        else if (ispunct(get) ) {
             if (isDelimiter(get)) {
                 token.tokenType = tokenDelimiter(get);
                 token.lineNum = lineNum;
@@ -211,11 +256,7 @@ Token lexical::analyze() {
             else if (isOtherOperators(get)) {
                 token.tokenType = tokenTypeOperator(get);
                 token.lineNum = lineNum;
-                if(get == 'm'){
-                    (fptr.get(get));
-                    (fptr.get(get));
-//                    ch = '%';
-                }
+
 
                 char str[2];
                 str[0] = get;
@@ -246,7 +287,7 @@ Token lexical::analyze() {
                             token.tokenType = T_EQUAL;
                             strcpy(token.str, "==");
                         } else if (get == '>') {
-                            token.tokenType = T_GRESTER_EQUAL;
+                            token.tokenType = T_GREATER_EQUAL;
 
                             strcpy(token.str, ">=");
                         } else {
@@ -280,23 +321,23 @@ Token lexical::analyze() {
 
     //printf("\n*** in scanner.c ***\n");
 
-    token.tokenType = EOFtk;
+    token.tokenType = T_EOF;
     return token;
 }
 //Open the file to be read
 bool lexical::openFile(const std::string pathInputFile,const std::string pathOutputFile) {
     infile.open(pathInputFile);
     ofile.open(pathOutputFile);
-     if(!infile){
-         std::cout << "Error opening file";
+    if(!infile){
+        std::cout << "Error opening file";
         return false;
-     }
+    }
     return true;
 }
 
 //Output the tree to file
 void lexical::writeFIle() {
- //   ofile << fileRead[1];
+    //   ofile << fileRead[1];
 
 }
 
@@ -306,110 +347,117 @@ void lexical::closeFile() {
 }
 TokenType lexical::tokenKeyword(char *word) {
 
-    if (strcasecmp(word, "program") == 0) return STARTtk;
+    if (strcasecmp(word, "program") == 0) return T_PROGRAM;
     if (strcasecmp(word, "begin") == 0) return T_BEGIN;
-    if (strcasecmp(word, "end") == 0) return FINISHtk;
-    if (strcasecmp(word, "if") == 0) return IFtk;
+    if (strcasecmp(word, "end") == 0) return T_END;
+    if (strcasecmp(word, "if") == 0) return T_IF;
     if (strcasecmp(word, "else") == 0) return T_ELSE;
-    if (strcasecmp(word, "then") == 0) return THENtk;
-    if (strcasecmp(word, "repeat") == 0) return REPEATtk;
-
+    if (strcasecmp(word, "then") == 0) return T_THEN;
+    if (strcasecmp(word, "not") == 0) return T_NOT;
+    if (strcasecmp(word, "repeat") == 0) return T_REPEAT;
+    if (strcasecmp(word, "while") == 0) return T_WHILE;
     if (strcasecmp(word, "for") == 0) return T_FOR;
     if (strcasecmp(word, "loop") == 0) return T_LOOP;
     if (strcasecmp(word, "until") == 0) return T_UNTIL;
     if (strcasecmp(word, "Ord") == 0) return T_ORD;
     if (strcasecmp(word, "return")==0) return T_RETURN;
     if (strcasecmp(word, "eof") == 0) return T_EOF;
-    if (strcasecmp(word, "var") == 0) return VARtk;
-    if (strcasecmp(word, "string") == 0) return STRING;
-    if (strcasecmp(word, "integer") == 0) return INTtk;
-    if (strcasecmp(word, "float") == 0) return FLOATtk;
-//	if (strcasecmp(word, "program") == 0) { return T_PROGRAM; }
-    if (strcasecmp(word, "read") == 0) return READtk;
+    if (strcasecmp(word, "var") == 0) return T_VAR;
+    if (strcasecmp(word, "string") == 0) return T_STRING;
+    if (strcasecmp(word, "integer") == 0) return T_INTEGER;
+    if (strcasecmp(word, "read") == 0) return T_READ;
     if (strcasecmp(word, "function") == 0) return T_FUNCTION;
-    if (strcasecmp(word, "read") == 0) return READtk;
-    if (strcasecmp(word, "print") == 0) return PRINTtk;
-    if (strcasecmp(word, "void") == 0) return VOIDtk;
+    if (strcasecmp(word, "output") == 0) return T_OUTPUT;
     if (strcasecmp(word, "end") == 0) return T_END;
-    if (strcasecmp(word, "dummy") ==0) return DUMMYtk;
-    if (strcasecmp(word, "program") == 0) return PROGRAMtk;
+    if (strcasecmp(word, "program") == 0) return T_POOL;
+    if (strcasecmp(word, "..") == 0) return T_DOTS;
+    if (strcasecmp(word, "mod") == 0) return T_MOD;
 }
 
 TokenType lexical::tokenDelimiter(char ch) {
-    if (ch == '.') return DOTtk;
-    if (ch == '(') return LEFTPAtk;
-    if (ch == ')') return RIGHTPAtk;
-    if (ch == ',') return COMMAtk;
-    if (ch == '{') return LEFTBRACEtk;
-    if (ch == '}') return RIGHTBRACEtk;
-    if (ch == ';') return SEMICOLONtk;
-    if (ch == '[') return LEFTBRACKETtk;
-    if (ch == ']') return RIGHTBRACKETtk;
+    if (ch == '.') return T_DELIM_DOT;
+    if (ch == '(') return T_DELIM_LEFT_PARRENTHESE;
+    if (ch == ')') return T_DELIM_RIGHT_PARRENTHESE;
+    if (ch == ',') return T_DELIM_COMMA;
+    if (ch == '{') return T_DELIM_LEFT_BRACE;
+    if (ch == '}') return T_DELIM_RIHGT_BRACE;
+    if (ch == ';') return T_DELIM_SEMICOLON;
+    if (ch == '[') return T_DELIM_LEFT_BRACKET;
+    if (ch == ']') return T_DELIM_RIGHT_BRACKET;
 }
 
 TokenType lexical::tokenTypeOperator(char ch) {
-    if (ch == '=') return ASSIGNtk;
-    if (ch == ':') return COLONtk;
-    if (ch == '+') return ADDtk;
-    if (ch == '-') return SUBTRACTtk;
-    if (ch == '*') return MULtk;
-    if (ch == '/') return DIVtk;
-    if (ch == 'm') return REMAINDERtk;
+    if (ch == '=') return T_ASSIGN;
+    if (ch == ':') return T_COLON;
+    if (ch == '+') return T_ADD;
+    if (ch == '-') return T_SUBTRACT;
+    if (ch == '*') return T_MUL;
+    if (ch == '/') return T_DIV;
+//    if (ch == 'm') return T_MOD;
 }
 
-char *lexical::tokenStr(Token token, char *str) {
+char *lexical::tokenStr(Token1 token, char *str) {
     switch (token.tokenType) {
-        case IDtk: strcpy(str, "IDENTIFER"); break;
-        case NUMBERtk: strcpy(str, "NUMBER"); break;
-        case T_ELSE: 	strcpy(str, "else [KEYWORD]"); break;
-        case T_FUNCTION:strcpy(str, "function [KEYWORD]"); break;
-        case T_BEGIN: 	strcpy(str, "begin [KEYWORD]"); break;
-        case STARTtk: 	strcpy(str, "program [KEYWORD]"); break;
-        case FINISHtk: 	strcpy(str, "finish [KEYWORD]"); break;
-        case THENtk: 	strcpy(str, "then [KEYWORD]"); break;
-        case IFtk: 		strcpy(str, "if [KEYWORD]"); break;
-        case REPEATtk: 	strcpy(str, "repeat [KEYWORD]"); break;
-        case T_FOR:     strcpy(str, "for [KEYWORD]"); break;
-        case T_LOOP:    strcpy(str, "loop [KEYWORD]"); break;
-        case T_UNTIL:   strcpy(str, "until [KEYWORD]"); break;
-        case VARtk: 	strcpy(str, "var [KEYWORD]"); break;
-        case INTtk: 	strcpy(str, "integer [KEYWORD]"); break;
-        case FLOATtk: 	strcpy(str, "float [KEYWORD]"); break;
-        case DOtk: 		strcpy(str, "do [KEYWORD]"); break;
-        case READtk: 	strcpy(str, "read [KEYWORD]"); break;
-        case PRINTtk: 	strcpy(str, "print [KEYWORD]"); break;
-        case VOIDtk: 	strcpy(str, "void [KEYWORD]"); break;
-        case T_END: 	strcpy(str, "end [KEYWORD]"); break;
-        case DUMMYtk: 	strcpy(str, "dummy [KEYWORD]"); break;
-        case T_ORD:     strcpy(str, "Ord [KEYWORD]"); break;
-        case T_RETURN:   strcpy(str, "return [KEYWORD]"); break;
-        case DOTtk: 	strcpy(str, "dot [DELIMITER]"); break;
-        case LEFTPAtk: 	strcpy(str, "left-parenthesis [DELIMITER]"); break;
-        case RIGHTPAtk: strcpy(str, "right-parenthesis [DELIMITER]"); break;
-        case COMMAtk: 	strcpy(str, "comma [DELIMITER]"); break;
-        case LEFTBRACEtk: 		strcpy(str, "left-brace [DELIMITER]"); break;
-        case RIGHTBRACEtk: 		strcpy(str, "right-brace [DELIMITER]"); break;
-        case LEFTBRACKETtk:		strcpy(str, "left-bracket [DELIMITER]"); break;
-        case RIGHTBRACKETtk:	strcpy(str, "right-bracket [DELIMITER]"); break;
-        case SEMICOLONtk: 		strcpy(str, "semi-colon [DELIMITER]"); break;
-        case T_EOF:         strcpy(str, "eof [KEYWORD"); break;
-        case ASSIGNtk:		strcpy(str, "assign [OTHER OPERATOR]"); break;
-        case COLONtk:		strcpy(str, "colon [OTHER OPERATOR]"); break;
-        case ADDtk:			strcpy(str, "add [OTHER OPERATOR]"); break;
-        case SUBTRACTtk:	strcpy(str, "subtractk [OTHER OPERATOR]"); break;
-        case MULtk: 		strcpy(str, "multiply [OTHER OPERATOR]"); break;
-        case DIVtk: 		strcpy(str, "division [OTHER OPERATOR]"); break;
-        case REMAINDERtk:	strcpy(str, "mod [OTHER OPERATOR]"); break;
+        case T_IDENTIFIER:  strcpy(str, "<IDENTIFER>"); break;
+        case T_NUMBER:      strcpy(str, "<NUMBER>"); break;
+        case T_ELSE: 	    strcpy(str, "<KEYWORD>"); break;
+        case T_FUNCTION:    strcpy(str, "<KEYWORD>"); break;
+        case T_BEGIN: 	    strcpy(str, "<KEYWORD>"); break;
+        case T_PROGRAM: 	strcpy(str, "<KEYWORD>"); break;
+        case T_THEN: 	    strcpy(str, "<KEYWORD>"); break;
+        case T_IF: 		    strcpy(str, "<KEYWORD>"); break;
+        case T_NOT:         strcpy(str, "<KEYWORD>"); break;
+        case T_REPEAT:  	strcpy(str, "<KEYWORD>"); break;
+        case T_FOR:         strcpy(str, "<KEYWORD>"); break;
+        case T_LOOP:        strcpy(str, "<KEYWORD>"); break;
+        case T_WHILE:       strcpy(str, "<KEYWORD>"); break;
+        case T_UNTIL:        strcpy(str, "<KEYWORD>"); break;
+        case T_VAR: 	    strcpy(str, "<KEYWORD>"); break;
+        case T_INTEGER:    	strcpy(str, "<KEYWORD>"); break;
+        case T_DO: 		    strcpy(str, "<KEYWORD>"); break;
+        case T_READ: 	    strcpy(str, "<KEYWORD>"); break;
+        case T_OUTPUT:  	strcpy(str, "<KEYWORD>"); break;
+        case T_END: 	    strcpy(str, "<KEYWORD>"); break;
+        case T_ORD:         strcpy(str, "<KEYWORD>"); break;
+        case T_RETURN:       strcpy(str, "<KEYWORD>"); break;
+        case T_DELIM_DOT: 	strcpy(str, "<DELIMITER>"); break;
+        case T_DELIM_LEFT_PARRENTHESE: 	strcpy(str, "<DELIMITER>"); break;
+        case T_DELIM_RIGHT_PARRENTHESE: strcpy(str, "<DELIMITER>"); break;
+        case T_DELIM_COMMA: 	strcpy(str, "<DELIMITER>"); break;
+        case T_DELIM_LEFT_BRACE: 		strcpy(str, "<DELIMITER>"); break;
+        case T_DELIM_RIHGT_BRACE: 		strcpy(str, "<DELIMITER>"); break;
+        case T_DELIM_LEFT_BRACKET:		strcpy(str, "<DELIMITER>"); break;
+        case T_DELIM_RIGHT_BRACKET:	 strcpy(str, "<DELIMITER>"); break;
+        case T_DELIM_SEMICOLON: 	 strcpy(str, "<DELIMITER>"); break;
+        case T_EOF:                  strcpy(str, "<KEYWORD>"); break;
+        case T_ASSIGN:		         strcpy(str, "<OPERATOR>"); break;
+        case T_COLON:		strcpy(str, "<OPERATOR>"); break;
+        case T_ADD:			strcpy(str, "<OPERATOR>"); break;
+        case T_SUBTRACT:	strcpy(str, "<OPERATOR>"); break;
+        case T_MUL: 		strcpy(str, "<OPERATOR>"); break;
+        case T_DIV: 		strcpy(str, "<OPERATOR>"); break;
+        case T_DOTS:        strcpy(str, "<OPERATOR>"); break;
+        case T_MOD:	        strcpy(str, "<OPERATOR>"); break;
 
-        case EQUALtk: 		strcpy(str, "equal [RELATIONAL OPERATOR]"); break;
-        case GREATERtk:		strcpy(str, "greater [RELATIONAL OPERATOR]"); break;
-        case LESStk:		strcpy(str, "less than [RELATIONAL OPERATOR]"); break;
-        case DIFFtk:		strcpy(str, "different [RELATIONAL OPERATOR]"); break;
-        case GREATEREQtk:	strcpy(str, "greater or equal [RELATIONAL OPERATOR]"); break;
-        case LESSEQtk: 		strcpy(str, "less than or equal [RELATIONAL OPERATOR]"); break;
+        case T_EQUAL: 		strcpy(str, "equal [RELATIONAL OPERATOR]"); break;
+        case T_GREATER_THAN:		strcpy(str, "greater [RELATIONAL OPERATOR]"); break;
+        case T_LESS_THAN:		strcpy(str, "less than [RELATIONAL OPERATOR]"); break;
+        case T_GREATER_EQUAL:	strcpy(str, "greater or equal [RELATIONAL OPERATOR]"); break;
+        case T_LESS_EQUAL: 		strcpy(str, "less than or equal [RELATIONAL OPERATOR]"); break;
 
 
         default: strcpy(str, "UNKNOWN");
     }
     return str;
+}
+
+void lexical::tkPrint(Token1 token) {
+    if (token.tokenType == T_EOF) {
+        printf("DONE \n\n");
+        return;
+    }
+
+    char tokenTypestr[2 * MAX];
+    printf("%10s \t line #%d \t %s \n",
+           token.str, token.lineNum, tokenStr(token, tokenTypestr));
 }
